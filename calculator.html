@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator App</title>
+    <style>
+        /* Basic styling for the body and calculator */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .calculator {
+            background-color: #444;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+
+        /* Styling for the display area */
+        .display {
+            background-color: #333;
+            color: white;
+            font-size: 2em;
+            padding: 10px;
+            text-align: right;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        /* Grid layout for calculator keys */
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columns grid */
+            gap: 10px;
+        }
+
+        /* Styling for calculator keys */
+        .key {
+            background-color: #555;
+            color: white;
+            border: none;
+            font-size: 1.5em;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hover effect for keys */
+        .key:hover {
+            background-color: #777;
+        }
+
+        /* Styling for operator keys */
+        .operator {
+            background-color: #FF9800;
+        }
+
+        /* Hover effect for operator keys */
+        .operator:hover {
+            background-color: #FFB74D;
+        }
+
+        /* Adjust specific button widths if necessary */
+        .key[data-key="0"] {
+            grid-column: span 2; /* Span 2 columns for '0' button */
+        }
+
+        .key[data-key="clear"], .key[data-key="backspace"] {
+            grid-column: span 2; /* Span 2 columns for 'AC' and '←' buttons */
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="keys">
+            <!-- Calculator buttons with appropriate data-key attributes -->
+            <button class="key operator" data-key="clear">AC</button> <!-- Clear button -->
+            <button class="key operator" data-key="backspace">←</button> <!-- Backspace button -->
+            <button class="key operator" data-key="/">÷</button> <!-- Division operator -->
+            <button class="key" data-key="7">7</button> <!-- Number 7 -->
+            <button class="key" data-key="8">8</button> <!-- Number 8 -->
+            <button class="key" data-key="9">9</button> <!-- Number 9 -->
+            <button class="key operator" data-key="*">x</button> <!-- Multiplication operator -->
+            <button class="key" data-key="4">4</button> <!-- Number 4 -->
+            <button class="key" data-key="5">5</button> <!-- Number 5 -->
+            <button class="key" data-key="6">6</button> <!-- Number 6 -->
+            <button class="key operator" data-key="-">-</button> <!-- Subtraction operator -->
+            <button class="key" data-key="1">1</button> <!-- Number 1 -->
+            <button class="key" data-key="2">2</button> <!-- Number 2 -->
+            <button class="key" data-key="3">3</button> <!-- Number 3 -->
+            <button class="key operator" data-key="+">+</button> <!-- Addition operator -->
+            <button class="key" data-key="0" style="grid-column: span 2;">0</button> <!-- Number 0 (spanning 2 columns) -->
+            <button class="key" data-key=".">.</button> <!-- Decimal point -->
+            <button class="key operator" id="equals" data-key="=">=</button> <!-- Equals button -->
+        </div>
+    </div>
+
+    <script>
+        // JavaScript logic for calculator functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const display = document.getElementById('display');
+            const keys = document.querySelectorAll('.key');
+            let currentInput = '0';
+            let firstOperand = null;
+            let operator = null;
+            let shouldResetDisplay = false;
+
+            // Event listeners for each calculator key
+            keys.forEach(key => {
+                key.addEventListener('click', () => {
+                    const keyValue = key.getAttribute('data-key');
+
+                    // Handling different key actions
+                    if (keyValue === 'clear') {
+                        clearDisplay();
+                    } else if (keyValue === 'backspace') {
+                        if (currentInput.length === 1) {
+                            currentInput = '0';
+                        } else {
+                            currentInput = currentInput.slice(0, -1);
+                        }
+                    } else if ('1234567890.'.includes(keyValue)) {
+                        if (currentInput === '0' || shouldResetDisplay) {
+                            currentInput = keyValue;
+                            shouldResetDisplay = false;
+                        } else {
+                            currentInput += keyValue;
+                        }
+                    } else if ('+-*/'.includes(keyValue)) {
+                        if (operator !== null) {
+                            compute();
+                        }
+                        firstOperand = parseFloat(currentInput);
+                        operator = keyValue;
+                        shouldResetDisplay = true;
+                    } else if (keyValue === '=') {
+                        compute();
+                        operator = null;
+                    }
+
+                    // Update display with current input
+                    updateDisplay();
+                });
+            });
+
+            // Function to update the display with current input
+            function updateDisplay() {
+                display.innerText = currentInput;
+            }
+
+            // Function to clear the display and reset calculator state
+            function clearDisplay() {
+                currentInput = '0';
+                firstOperand = null;
+                operator = null;
+                shouldResetDisplay = false;
+                updateDisplay();
+            }
+
+            // Function to perform calculation based on operator
+            function compute() {
+                const secondOperand = parseFloat(currentInput);
+                let result = 0;
+
+                switch (operator) {
+                    case '+':
+                        result = firstOperand + secondOperand;
+                        break;
+                    case '-':
+                        result = firstOperand - secondOperand;
+                        break;
+                    case '*':
+                        result = firstOperand * secondOperand;
+                        break;
+                    case '/':
+                        result = firstOperand / secondOperand;
+                        break;
+                    default:
+                        return;
+                }
+
+                // Remove unnecessary decimal places
+                currentInput = result.toString().replace(/\.0+$/, '');
+                firstOperand = result;
+            }
+        });
+    </script>
+</body>
+</html>
